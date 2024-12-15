@@ -1,0 +1,9 @@
+# Ignore cookie files
+*.cookie
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore sample API response files in the files folder (txt files in the files folder)
+files/*.txt
