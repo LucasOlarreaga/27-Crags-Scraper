@@ -7,3 +7,9 @@ __pycache__/
 
 # Ignore sample API response files in the files folder (txt files in the files folder)
 files/*.txt
+
+# Ignore the DB files in the files folder 
+files/*.db
+
+# Ignore macOS DS_Store files
+.DS_Store
