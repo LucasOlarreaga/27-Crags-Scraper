@@ -21,8 +21,8 @@ def get_next_page_url(soup):
 
 # Insert a crag into the database
 def wait():
-     # Sleep for a random interval between 1 and 7 seconds
-    sleep_time = random.uniform(1, 7)
+     # Sleep for a random interval between 1 and 3 seconds
+    sleep_time = random.uniform(1, 3)
     time.sleep(sleep_time)
 
 # Extract boulders from the HTML content
@@ -103,7 +103,7 @@ def insert_boulders_into_db(boulders):
             ''', (boulder['url'], boulder['name'], boulder['grade'], boulder['rating'], boulder['ascents'], boulder['type'], boulder['sector'], boulder['description']))
         except sqlite3.IntegrityError:
                 pass
-                print(f"Boulder {boulder['name']} at {boulder['sector']} already exists. Skipping insertion.")    
+                print(f"\tBoulder {boulder['name']} at {boulder['sector']} already exists. Skipping insertion.")    
     conn.commit()
     conn.close()
 
@@ -179,7 +179,7 @@ def main():
             else:
                 # Extract crag name of the URL
                 last_part = link.rstrip('/').split('/')[-1]
-                print(f"{index}/{len(crags_links)}) Scraping {last_part}")
+                print(f"\t{index+1}/{len(crags_links)}) Scraping {last_part}")
                 
                 # Parse the HTML content using BeautifulSoup
                 routes_html = extract_boulders(response)
