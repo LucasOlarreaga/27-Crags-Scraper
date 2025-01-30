@@ -3,6 +3,7 @@ import pandas as pd
 from bs4 import BeautifulSoup
 
 
+# Getting the subset of crags that have routes from the crags_data.csv file
 def get_subset_crag_df():
     # Define the file path
     csv_file_path = '/Users/lolarreaga/Documents/GitHub/theCragScrap/files/crags_data.csv'
@@ -34,20 +35,19 @@ def get_subset_crag_df():
     return crags_df
 
 
-
+# Getting the routes from each crag
 def get_routes_from_crags(crags_df):
+
     # Initialize a list to hold the data
     bouldering_routes = []
 
-    param_id = crags_df['param_id']
-
-    print(len(param_id))
-
-
+    # Iterate through the crags
     for index, crag in crags_df.iterrows():
         
+        # Extract the 'param_id' from the current crag
         param_id = crag['param_id']
 
+        # Make a request to the crag's route list page
         print(f"{index}/{len(crags_df)}) Getting routes for crag {crag['name']}")
         response = requests.get(f'https://27crags.com/crags/{param_id}/routelist')
         
@@ -99,11 +99,14 @@ def get_routes_from_crags(crags_df):
 
 def main(test=False):
 
+    # Get the subset of crags that have routes
     crags_df = get_subset_crag_df()
 
+    # If test is True, only get the first 4 crags
     if test == True:
         crags_df = crags_df[:4]
 
+    # Get the routes from the crags
     routes_df= get_routes_from_crags(crags_df)
 
     print('Finished getting routes, now writing to CSV')

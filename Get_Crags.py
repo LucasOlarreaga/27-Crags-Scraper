@@ -1,15 +1,9 @@
-import requests
-
-# Get all location with https://27crags.com/crags to list locations and https://27crags.com/api/web01/search?query=XXX to get them
-# Better, you get the crag ID (not param_ID) and then use this: https://27crags.com/api/web01/crags?ids=21, 22
-# From here get page, then store param_ID, and from there use https://27crags.com/crags/{param-id}/routelist eg. penon-de-ifach
-
-
 import requests, math
 from bs4 import BeautifulSoup
 import json, pandas as pd
 
 
+# Define the grade hash for converting grades to a french grade format
 grade_hash = {100: "3", 150: "3+", 200: "4", 250: "4+", 275: "4+", 300: "5",
         350: "5+", 370: "5+", 380: "5+", 400: "6A", 450: "6A+",
         500: "6B", 550: "6B+", 575: "6B+", 600: "6C", 650: "6C+",
@@ -19,7 +13,9 @@ grade_hash = {100: "3", 150: "3+", 200: "4", 250: "4+", 275: "4+", 300: "5",
         1450: "9B+", 1500: "9C", 1550: "9C+", 1600: "10A", 0: "?"}
 
 
+# Function to get the list of crags
 def get_crags_list(url):
+
     # Make initial the API call to get list of all crags
     response = requests.get(url)
     html_content = response.text
@@ -35,11 +31,16 @@ def get_crags_list(url):
     return df
 
 
+# Function to get the details of each crag (mostly param_id, for routelist)
 def get_crag_details(json_content):
+
+    # Initialize a list to hold the data
     updates = []
 
+    # Iterate through the crags
     for crag in json_content['crags']:
-    # Extract top-level fields
+
+        # Extract top-level fields
         crag_data = {
             'id': crag['id'],
             'param_id': crag['param_id'],
@@ -63,10 +64,15 @@ def get_crag_details(json_content):
 
         # Extract nested fields
         route_counts = crag['route_counts']
+        # Iterate through the different types of route counts (sport, boulder, trad, etc.)
         for route_type, grades in route_counts.items():
+            # Convert the route type to a key (name)
             route_type_key = route_type.lower().replace(' ', '_')
+            # Iterate through the different grades for a specific route type
             for grade_key, count in grades.items():
+                # Convert the hashed grade to font grade used in the key (name)
                 grade_name = grade_hash.get(int(grade_key), grade_key)
+                # Using the key (name with route type and grade) to store the count
                 crag_data[f'{route_type_key}_{grade_name}'] = count
 
         updates.append(crag_data)
@@ -78,6 +84,7 @@ def get_crag_details(json_content):
 
 def main(test=False):
 
+    # Get the list of crags
     df = get_crags_list("https://27crags.com/crags")
 
     # Initialize all_updates_df
@@ -89,19 +96,28 @@ def main(test=False):
         all_ids = all_ids[:100]
     len_all_ids = math.ceil(len(all_ids) / 50)
 
+    # Iterate through the IDs in batches of 50 (max limit for the API call)
     while all_ids:
+
+        # Extract the first 50 IDs
         fifty_ids = all_ids[:50]
+        # Concatenate the IDs into a single string separated by commas
         concatenated_ids = ','.join(fifty_ids)
+        # Remove the first 50 IDs from the list
         all_ids = all_ids[50:]
+
         print(f'{math.ceil(len(all_ids)/50)}/{len_all_ids} batches of IDs left')
 
         # Make the API call with the concatenated IDs
         response = requests.get(f'https://27crags.com/api/web01/crags?ids={concatenated_ids}')
         json_content = json.loads(response.text)
 
+        # Get the crag details for the 50 crags of this loop
         updates_df = get_crag_details(json_content)
+        # Concatenate the current updates DataFrame with the main updates DataFrame
         all_updates_df = pd.concat([all_updates_df, updates_df], ignore_index=True)
 
+        # Break the loop if there are less than 50 IDs left (last batch)
         if len(fifty_ids) < 50:
             break
 
@@ -109,7 +125,6 @@ def main(test=False):
     # Merge the original DataFrame with all updates
     print('Finished getting crag details, now merging the dataframes')
     df = pd.concat([df.set_index('id'), all_updates_df.set_index('id')], axis=1).reset_index()
-
 
 
     # Convert the DataFrame to a CSV file
