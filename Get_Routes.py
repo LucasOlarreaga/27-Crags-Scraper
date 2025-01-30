@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 # Getting the subset of crags that have routes from the crags_data.csv file
 def get_subset_crag_df():
     # Define the file path
-    csv_file_path = '/Users/lolarreaga/Documents/GitHub/theCragScrap/files/crags_data.csv'
+    csv_file_path = 'files/crags_data.csv'
 
     # Create an empty DataFrame
     crags_df = pd.DataFrame(columns=['name', 'param_id', 'latitude', 'longitude', 'routes_count'])
