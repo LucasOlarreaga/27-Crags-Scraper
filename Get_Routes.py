@@ -1,6 +1,7 @@
 import csv, requests
 import pandas as pd
 from bs4 import BeautifulSoup
+import time, random
 
 
 # Getting the subset of crags that have routes from the crags_data.csv file
@@ -51,9 +52,20 @@ def get_routes_from_crags(crags_df):
         print(f"{index}/{len(crags_df)}) Getting routes for crag {crag['name']}")
         response = requests.get(f'https://27crags.com/crags/{param_id}/routelist')
         
+        # Check if the response was successful
+        if response.status_code != 200:
+            print(f"Failed to get routes for crag {crag['name']}, status code: {response.status_code}")
+            with open('files/failed_crags.csv', 'a', newline='', encoding='utf-8') as failed_file:
+                writer = csv.writer(failed_file)
+                writer.writerow([param_id])
+            continue
+        
         # Parse the HTML content using BeautifulSoup
         soup = BeautifulSoup(response.text, 'html.parser')
-
+        
+        # Setting bouldering routes before adding in new routes to keep count
+        bouldering_routes_before = bouldering_routes.copy()
+        
         # Find all <tr> elements
         for tr in soup.find_all('tr'):
             # Extracting route name
@@ -89,10 +101,15 @@ def get_routes_from_crags(crags_df):
             # Extracting rating
             rating_div = tr.find('div', class_='rating')
             route_rating = rating_div.text.strip() if rating_div else '0.0'
-
+            
             # Add the extracted data to the list
             bouldering_routes.append([route_name, route_grade, route_type, ascents_count, location_link, route_rating, crag['name'], crag['latitude'], crag['longitude']])
-
+    
+        # Print the number of routes added for the current crag
+        print('     ', crag['param_id'], ' has ', len(bouldering_routes) - len(bouldering_routes_before), ' routes. Total length ', len(bouldering_routes))
+        
+        # Wait for a random time between 1 and 3 seconds
+        time.sleep(random.uniform(0.9, 1.4))
 
     return bouldering_routes
     
@@ -104,12 +121,16 @@ def main(test=False):
 
     # If test is True, only get the first 4 crags
     if test == True:
-        crags_df = crags_df[:4]
+        crags_df = crags_df[:300]
 
+    # Reset the index of the DataFrame
+    crags_df = crags_df.reset_index(drop=True)
+    
     # Get the routes from the crags
     routes_df= get_routes_from_crags(crags_df)
 
     print('Finished getting routes, now writing to CSV')
+    print('Length out of loop: ', len(routes_df))
 
     # Write data to CSV
     with open('files/routes_data.csv', 'w', newline='', encoding='utf-8') as csvfile:
