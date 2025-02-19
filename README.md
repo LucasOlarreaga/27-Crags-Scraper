@@ -9,3 +9,5 @@ As for the individual scripts, the Get_Crags obtains each crag available from th
 Each one of these crags is stored with its basic information in a dataset, which is the looked up individually to find the necessary ID, called param_id, storing the completed dataset as the crags_data.csv file.
 
 The Get_Routes script then uses that dataset, extracts the most intersting information (to include it in it's own final product), and looks up the routelist of each indvidual crag, storing the final product in a dataset, which in turn is also converted into a routes_data.csv file
+
+The final Tableau visualisations can be found here: [https://public.tableau.com/app/profile/lucas.olarreaga3340/viz/27CragsAnalysis/AscentsPerGrade](https://public.tableau.com/app/profile/lucas.olarreaga3340/viz/27CragsAnalysis/AscentsPerGrade).
